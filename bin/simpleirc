@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+import argparse
+import logging
+import sys
+
+try:
+    import simpleirc.client
+except ImportError:
+    from os.path import dirname
+    sys.path.append(dirname(dirname(__file__)))
+    import simpleirc.client
+
+
+def log_level(value):
+    return getattr(logging, value.upper(), logging.DEBUG)
+
+
+if __name__ == '__main__':
+    opts = argparse.ArgumentParser(
+        prog='simpleirc',
+        description='SimpleIRC is a Python implementation of the IRC protocol',
+    )
+    opts.add_argument('-f', '--format', dest='format', action='store', type=str,
+                      help='Set the format of the log output, this will directly affect the log file')
+    opts.add_argument('--log-file', dest='log_file', help='Log file to write logging out to')
+    opts.add_argument('--log-level', dest='log_level', nargs=1, type=log_level, default=logging.DEBUG,
+                      help='Set the level for the log file output: DEBUG, INFO, WARNING, ERROR')
+    opts.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=False,
+                      help='Display logging output to stdout')
+    opts.add_argument('--version', dest='version', action='store_true', default=False)
+
+    args = opts.parse_args()
+    if args.verbose is True:
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.DEBUG)
+        f = logging.Formatter('[%(asctime)-15s] %(name)-10s %(levelname)-8s: %(message)s')
+        ch.setFormatter(f)
+        l = logging.getLogger('simpleirc')
+        l.setLevel(logging.DEBUG)
+        l.addHandler(ch)
+
+    if args.version:
+        opts.print_usage()
+        print('version: %s' % (simpleirc.__version__, ))
+        sys.exit(0)
+
+    c = simpleirc.client.Bot()
+    print(c.config)
+
