@@ -20,20 +20,25 @@ if __name__ == '__main__':
         prog='simpleirc',
         description='SimpleIRC is a Python implementation of the IRC protocol',
     )
-    opts.add_argument('-f', '--format', dest='format', action='store', type=str,
-                      help='Set the format of the log output, this will directly affect the log file')
-    opts.add_argument('--log-file', dest='log_file', help='Log file to write logging out to')
+    opts.add_argument('-b', '--bot', dest='bot', action='store_true', default=False,
+                      help='start the built in bot')
+    opts.add_argument('--config', dest='config_dir', action='store', type=str,
+                      help='set the directory to load config files from')
+    opts.add_argument('--format', dest='format', action='store', type=str,
+                      help='set the format of the log output, this will directly affect the log file')
+    opts.add_argument('--log-file', dest='log_file', help='log file to write logging out to')
     opts.add_argument('--log-level', dest='log_level', nargs=1, type=log_level, default=logging.DEBUG,
-                      help='Set the level for the log file output: DEBUG, INFO, WARNING, ERROR')
+                      help='set the level for the log file output: DEBUG, INFO, WARNING, ERROR')
     opts.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=False,
-                      help='Display logging output to stdout')
-    opts.add_argument('--version', dest='version', action='store_true', default=False)
+                      help='display logging output to stdout')
+    opts.add_argument('--version', dest='version', action='store_true', default=False,
+                      help='display usage and version and exit')
 
     args = opts.parse_args()
     if args.verbose is True:
         ch = logging.StreamHandler(sys.stdout)
         ch.setLevel(logging.DEBUG)
-        f = logging.Formatter('[%(asctime)-15s] %(name)-10s %(levelname)-8s: %(message)s')
+        f = logging.Formatter('[%(asctime)-15s] %(name)-20s %(levelname)-8s: %(message)s')
         ch.setFormatter(f)
         l = logging.getLogger('simpleirc')
         l.setLevel(logging.DEBUG)
@@ -44,6 +49,13 @@ if __name__ == '__main__':
         print('version: %s' % (simpleirc.__version__, ))
         sys.exit(0)
 
-    c = simpleirc.client.Bot()
-    print(c.config)
+    c = None
+    if args.bot:
+        c = simpleirc.client.Bot()
+
+    if c is None:
+        print('no client specified to run, please use a client flag to run this program')
+        opts.print_usage()
+        sys.exit(-1)
+    c.run()
 
